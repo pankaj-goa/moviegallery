@@ -39,7 +39,6 @@ enum ReachabilityStatus: CustomStringConvertible  {
 }
 
 public class Reach {
-    
     func connectionStatus() -> ReachabilityStatus {
         var zeroAddress = sockaddr_in()
         zeroAddress.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
@@ -61,6 +60,15 @@ public class Reach {
         return ReachabilityStatus(reachabilityFlags: flags)
     }
     
+    func isConnectedToInternet() -> Bool{
+        let status = self.connectionStatus()
+        switch status {
+        case .offline, .unknown:
+            return false
+        default:
+            return true
+        }
+    }
     
     func monitorReachabilityChanges() {
         let host = "google.com"

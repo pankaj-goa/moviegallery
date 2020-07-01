@@ -11,7 +11,6 @@ import RxSwift
 import RxCocoa
 import RealmSwift
 
-///ViewModel class for MovieDetailsViewController
 class MoviesDetailsViewModel{
     let apiCall = ApiClass()
     

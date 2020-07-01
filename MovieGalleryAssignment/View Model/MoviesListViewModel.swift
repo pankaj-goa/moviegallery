@@ -14,19 +14,20 @@ import RxCocoa
 import RealmSwift
 import Connectivity
 
-///ViewModel class for MoviesListViewController
 class MoviesListViewModel {
     let apiCall = ApiClass()
-    var totalPages: Int?
     var topPageNo: Int = 0
     var bottomPageNo: Int = 0
     
-    let offlineDataTitleText = "Displaying offline data, pull to refresh"
+    let offlineDataTitleText = "Displaying Offline Data, Pull To Refresh"
     let navigationTitleText = "Movie Catalog"
     let moviesCellIdentifier = "MoviesTableViewCell"
     let searchBarPlaceholderText = "Search movies"
     
     private var disposeBag = DisposeBag()
+    
+    private var interfaceAPIMovies: MoviesAPIInterface?
+    
     private let data = BehaviorRelay<(movies: [Movie], isOnline: Bool)>(value: ([], true))
     var dataObservable: Observable<(movies: [Movie], isOnline: Bool)> {
         return data.asObservable()
@@ -67,7 +68,7 @@ class MoviesListViewModel {
     }
     
     /**
-    Call this function to fetch list of movies from server for a page and insert or append data. ie top or bottom also sets the observable values for subscribers.
+    Call this function to fetch list of movies from server for a page and insert or append data. ie top or bottom also sets the observable values for subscribers and also checks for offline data incase of not connection.
     - Parameters:
        - pageNo: Pass your page no for fetching movies in Int
     
@@ -78,68 +79,33 @@ class MoviesListViewModel {
     ````
     */
     func fetchMovies(pageNo: Int = 10) {
-        if self.dataSource.movies.isEmpty {
-            self.isLoading.onNext(true)
-            let movies = Array(try!Realm().objects(Movie.self))
-            if movies.count > 0{
-                let status = Reach().connectionStatus()
-                switch status {
-                case .offline, .unknown:
-                    self.isLoading.onNext(false)
-                    self.data.accept((movies: movies, isOnline: false))
-                    return
-                default:
-                    self.isLoading.onNext(true)
-                }
-            }
-        } else {
-            if pageNo > self.bottomPageNo{
-                self.showBottomLoader.onNext(true)
-            } else if pageNo < self.topPageNo{
-                self.showTopLoader.onNext((show: true, newMoviesCount: 0))
-            }
-        }
-        if let total = totalPages, pageNo > total{
-            self.didFinishBottomPagination.onNext(true)
-            self.showBottomLoader.onNext(false)
-            self.isLoading.onNext(false)
-            self.showSnackBar.onNext(SnackAlert.pageBottom.msg)
-            return
-        } else if pageNo < 1 {
-            self.didFinishTopPagination.onNext(true)
-            self.showTopLoader.onNext((show: false, newMoviesCount: 0))
-            self.isLoading.onNext(false)
-            self.showSnackBar.onNext(SnackAlert.pageTop.msg)
-            return
-        }
+        if !self.shouldFetchDataAndShowLoaderForPageNo(pageNo){ return }
         
         self.apiCall.fetchMoviesByPage(pageNo)
         .subscribe(onNext: { [weak self] interface in
             guard let `self` = self else { return }
-                self.isLoading.onNext(false)
-            if let pageInterface = interface.total_pages, let pages = pageInterface.value{
-                self.totalPages = pages
-            }
+            self.isLoading.onNext(false)
             if self.dataSource.movies.isEmpty {
-                self.topPageNo = pageNo
-                self.bottomPageNo = pageNo
                 var movies = self.dataSource.movies
                 movies.append(contentsOf: interface.results)
                 self.deleteRealmMovieData()
                 self.data.accept((movies: movies, isOnline: true))
-            } else if pageNo < self.topPageNo{
+                self.topPageNo = pageNo
+                self.bottomPageNo = pageNo
+            } else if let interfaceMovie = self.interfaceAPIMovies, let page = interfaceMovie.page?.value, page > pageNo{
                 self.topPageNo = pageNo
                 var movies = self.dataSource.movies
                 movies.insert(contentsOf: interface.results, at: 0)
                 self.data.accept((movies: movies, isOnline: true))
                 self.showTopLoader.onNext((show: false, newMoviesCount: interface.results.count))
-            } else if pageNo > self.bottomPageNo{
+            } else {
                 self.bottomPageNo = pageNo
                 var movies = self.dataSource.movies
                 movies.append(contentsOf: interface.results)
                 self.data.accept((movies: movies, isOnline: true))
                 self.showBottomLoader.onNext(false)
             }
+            self.interfaceAPIMovies = interface
             self.addMovieToRealm(movies: interface.results)
             }, onError: { [weak self] error in
                 let error = (error as? APIErrors)?.errorStr
@@ -151,8 +117,60 @@ class MoviesListViewModel {
             .disposed(by: self.disposeBag)
     }
     
+    private func shouldFetchDataAndShowLoaderForPageNo(_ pageNo: Int) -> Bool{
+        if let movieInterface = self.interfaceAPIMovies, !self.dataSource.movies.isEmpty{
+            if let page = movieInterface.page?.value, page > pageNo{
+                self.showTopLoader.onNext((show: true, newMoviesCount: 0))
+            } else{
+                self.showBottomLoader.onNext(true)
+            }
+            if !self.checkIfMoreRecordsExits(movieInterface: movieInterface, pageNo: pageNo){
+                return false
+            }
+        } else{ //NO DATA PRESENT
+            if let movies = checkIfOffline(){
+                self.data.accept((movies: movies, isOnline: false))
+                return false
+            }
+            else{
+                self.isLoading.onNext(true) //try to fetch data
+            }
+        }
+        return true
+    }
+    
+    private func checkIfMoreRecordsExits(movieInterface: MoviesAPIInterface, pageNo: Int) -> Bool{
+        if let total = movieInterface.total_pages?.value, pageNo > total{
+            self.didFinishBottomPagination.onNext(true)
+            self.showBottomLoader.onNext(false)
+            self.isLoading.onNext(false)
+            self.showSnackBar.onNext(SnackAlert.pageBottom.msg)
+            return false
+        } else if pageNo < 1 {
+            self.didFinishTopPagination.onNext(true)
+            self.showTopLoader.onNext((show: false, newMoviesCount: 0))
+            self.isLoading.onNext(false)
+            self.showSnackBar.onNext(SnackAlert.pageTop.msg)
+            return false
+        } else{
+            return true
+        }
+    }
+    
+    private func checkIfOffline() -> [Movie]?{
+        let movies = Array(try!Realm().objects(Movie.self))
+        if movies.count > 0, !Reach().isConnectedToInternet(){
+            return movies
+        } else {
+            return nil
+        }
+    }
+    
     ///Call this function to remove all the records from the datasource.
     func resetDataSource(){
+        self.topPageNo = 0
+        self.bottomPageNo = 0
+        self.interfaceAPIMovies = nil
         self.data.accept((movies: [], isOnline: true))
     }
     
