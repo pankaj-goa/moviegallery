@@ -39,9 +39,9 @@ class MoviesListViewController: UIViewController {
         
         self.setupTableView()
         
-        self.viewModel.fetchMovies()
-        
         self.setUpObservers()
+        
+        self.viewModel.fetchMovies()
     }
     
     private func setupActivityLoadersInHeaderAndFooter(){
@@ -83,9 +83,7 @@ class MoviesListViewController: UIViewController {
     }
     
     /**
-    Call this function to add subscribers in View Controller class.
-    - Parameters:
-       - titleName: Pass your title name to be displayed in navigation in String.
+    Call this function to add subscribers.
     
     ### Usage Example: ###
     ````
@@ -136,7 +134,7 @@ class MoviesListViewController: UIViewController {
             if data.isOnline{
                 self?.internetStatusLabel.text = nil
             } else{
-                self?.internetStatusLabel.text = self?.viewModel.offlineDataTitleText
+                self?.internetStatusLabel.text = PageError.offlineMode.msg
                 if self?.moviesTableView.topPullToRefresh == nil{ self?.setupPullToRefresh(on: (self?.moviesTableView)!) }
             }
             self?.moviesTableView.reloadData()
@@ -226,12 +224,11 @@ class MoviesListViewController: UIViewController {
                 scrollView?.endRefreshing(at: .top)
                 self?.viewModel.resetDataSource()
                 self?.viewModel.fetchMovies()
-                self?.view.layoutIfNeeded()
             }
         }
         scrollView.addPullToRefresh(PullToRefresh(position: .bottom)) {
             DispatchQueue.main.async() { [weak self, weak scrollView] in
-            scrollView?.endRefreshing(at: .top)
+            scrollView?.endRefreshing(at: .bottom)
             self?.view.layoutIfNeeded()
         }}
     }
@@ -257,7 +254,6 @@ extension MoviesListViewController: UITableViewDelegate, UITableViewDataSource{
         return cell
     }
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        
         if self.searchBar.isEmpty() && self.viewModel.dataSource.isOnline{
             if indexPath.row == 0, !self.headerIndicator.isAnimating{
                 self.showIndicatorAtTop(true)

@@ -111,18 +111,7 @@ class MoviesDetailsViewModel{
     ````
     */
     func fetchMovieDetailsById(_ movieId: Int){
-        let status = Reach().connectionStatus()
-        switch status {
-        case .offline, .unknown:
-            let error = APIErrors.serverError.errorStr
-            let movieForId = try!Realm().objects(Movie.self).filter("id == %@", movieId)
-            if let movie = movieForId.first{
-                self.data.accept(movie)
-                self.showSnackBar.onNext((message: error, dataExists: true))
-            } else{
-                self.showSnackBar.onNext((message: error, dataExists: false))
-            }
-        default:
+        if Reach().isConnectedToInternet(){
             self.isLoading.onNext(true)
             self.apiCall.fetchMovieDetailsById(movieId)
             .subscribe(onNext: { [weak self] movieDetail in
@@ -135,6 +124,15 @@ class MoviesDetailsViewModel{
                 self?.isLoading.onNext(false)
             })
             .disposed(by: self.disposeBag)
+        } else{
+            let error = APIErrors.serverError.errorStr
+            let movieForId = try!Realm().objects(Movie.self).filter("id == %@", movieId)
+            if let movie = movieForId.first{
+                self.data.accept(movie)
+                self.showSnackBar.onNext((message: error, dataExists: true))
+            } else{
+                self.showSnackBar.onNext((message: error, dataExists: false))
+            }
         }
     }
     

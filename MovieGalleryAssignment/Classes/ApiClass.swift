@@ -3,16 +3,6 @@ import Foundation
 import Alamofire
 import RxSwift
 
-///API Errors: Defined enum for server errors
-enum APIErrors: Error {
-    case serverError
-    var errorStr: String {
-        switch self {
-        default:
-            return "Server error, please try after a while"
-        }
-    }
-}
 ///ApiClass: All network methods are defined within this class.
 class ApiClass {
     /**

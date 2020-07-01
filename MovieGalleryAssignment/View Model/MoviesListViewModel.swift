@@ -19,7 +19,7 @@ class MoviesListViewModel {
     var topPageNo: Int = 0
     var bottomPageNo: Int = 0
     
-    let offlineDataTitleText = "Displaying Offline Data, Pull To Refresh"
+//    let offlineDataTitleText = "Displaying Offline Data, Pull To Refresh"
     let navigationTitleText = "Movie Catalog"
     let moviesCellIdentifier = "MoviesTableViewCell"
     let searchBarPlaceholderText = "Search movies"
@@ -106,7 +106,7 @@ class MoviesListViewModel {
                 self.showBottomLoader.onNext(false)
             }
             self.interfaceAPIMovies = interface
-            self.addMovieToRealm(movies: interface.results)
+            self.addMovieResultsToRealmDB(movies: interface.results)
             }, onError: { [weak self] error in
                 let error = (error as? APIErrors)?.errorStr
                 self?.showSnackBar.onNext(error)
@@ -117,6 +117,7 @@ class MoviesListViewModel {
             .disposed(by: self.disposeBag)
     }
     
+    ///Call this function to show the top, bottom or svprogress loader or return offline data incase of no internet and has offline data in realm or continue with server request incase of no offline data.
     private func shouldFetchDataAndShowLoaderForPageNo(_ pageNo: Int) -> Bool{
         if let movieInterface = self.interfaceAPIMovies, !self.dataSource.movies.isEmpty{
             if let page = movieInterface.page?.value, page > pageNo{
@@ -139,24 +140,26 @@ class MoviesListViewModel {
         return true
     }
     
+    ///Call this function to check that pageNo is not the last page or 1st page, returns true if more records can be fetched else shows snacbar and returns false.
     private func checkIfMoreRecordsExits(movieInterface: MoviesAPIInterface, pageNo: Int) -> Bool{
         if let total = movieInterface.total_pages?.value, pageNo > total{
             self.didFinishBottomPagination.onNext(true)
             self.showBottomLoader.onNext(false)
             self.isLoading.onNext(false)
-            self.showSnackBar.onNext(SnackAlert.pageBottom.msg)
+            self.showSnackBar.onNext(PageError.pageBottom.msg)
             return false
         } else if pageNo < 1 {
             self.didFinishTopPagination.onNext(true)
             self.showTopLoader.onNext((show: false, newMoviesCount: 0))
             self.isLoading.onNext(false)
-            self.showSnackBar.onNext(SnackAlert.pageTop.msg)
+            self.showSnackBar.onNext(PageError.pageTop.msg)
             return false
         } else{
             return true
         }
     }
     
+    ///Check internet connectivity, returns movies from realm db if exists and no internet, else returns nil
     private func checkIfOffline() -> [Movie]?{
         let movies = Array(try!Realm().objects(Movie.self))
         if movies.count > 0, !Reach().isConnectedToInternet(){
@@ -174,7 +177,7 @@ class MoviesListViewModel {
         self.data.accept((movies: [], isOnline: true))
     }
     
-    //Call this function to remove all the records from the realm database.
+    ///Call this function to remove all the records from the realm database.
     func deleteRealmMovieData(){
         let realm = try! Realm()
         try! realm.write{
@@ -186,8 +189,13 @@ class MoviesListViewModel {
     Call this function to add data to the realm db.
     - Parameters:
        - movies: Pass list of movies to be added to the realm database.
+     ### Usage Example: ###
+     ````
+      addMovieResultsToRealmDB(movies: List<Movie>)
+      
+     ````
     */
-    private func addMovieToRealm(movies: List<Movie>){
+    private func addMovieResultsToRealmDB(movies: List<Movie>){
         let realm = try! Realm()
         try! realm.write{
             realm.add(movies)
