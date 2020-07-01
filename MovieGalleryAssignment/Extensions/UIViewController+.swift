@@ -15,7 +15,11 @@ extension UIViewController{
     
     func configureNavigationBar(titleName: String){
         self.navigationController?.navigationBar.isTranslucent = false
-        self.navigationController?.navigationBar.tintColor = UIColor.link
+        if #available(iOS 13.0, *) {
+            self.navigationController?.navigationBar.tintColor = UIColor.link
+        } else {
+            self.navigationController?.navigationBar.tintColor = UIColor.systemBlue
+        }
         self.navigationController?.navigationBar.barTintColor = UIColor.white
         self.navigationItem.title = titleName
     }

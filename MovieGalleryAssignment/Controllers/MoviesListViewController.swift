@@ -23,19 +23,30 @@ class MoviesListViewController: UIViewController {
     var disposeBag = DisposeBag()
     var viewModel = MoviesListViewModel()
     
-    var footerIndicator = UIActivityIndicatorView(style: .medium)
-    var headerIndicator = UIActivityIndicatorView(style: .medium)
+    var footerIndicator: UIActivityIndicatorView!
+    var headerIndicator: UIActivityIndicatorView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.configureNavigationBar(titleName: "Movie Catalog")
         
+        if #available(iOS 13.0, *) {
+            self.headerIndicator = UIActivityIndicatorView(style: .medium)
+            self.footerIndicator = UIActivityIndicatorView(style: .medium)
+        } else{
+            self.headerIndicator = UIActivityIndicatorView(style: .gray)
+            self.footerIndicator = UIActivityIndicatorView(style: .gray)
+        }
+        
+        self.configActivityIndicator(spinner: footerIndicator)
+        self.configActivityIndicator(spinner: headerIndicator)
+        
         self.searchBar.delegate = self
-        self.searchBar.searchTextField.clearButtonMode = .whileEditing
-        self.searchBar.searchTextField.textAlignment = .center
+        self.searchBar.textField?.clearButtonMode = .whileEditing
+        self.searchBar.textField?.textAlignment = .center
         let placeholderParagraphStyle = NSMutableParagraphStyle()
         placeholderParagraphStyle.alignment = .center
-        self.searchBar.searchTextField.attributedPlaceholder = NSAttributedString(
+        self.searchBar.textField?.attributedPlaceholder = NSAttributedString(
             string: "Search movies",
             attributes: [
                 NSAttributedString.Key.paragraphStyle: placeholderParagraphStyle
@@ -44,9 +55,6 @@ class MoviesListViewController: UIViewController {
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
-        
-        self.configActivityIndicator(spinner: footerIndicator)
-        self.configActivityIndicator(spinner: headerIndicator)
         
         self.moviesTableView.tableHeaderView = nil
         self.moviesTableView.delegate = self
@@ -180,7 +188,7 @@ class MoviesListViewController: UIViewController {
             DispatchQueue.main.async() { [weak self, weak scrollView] in
                 scrollView?.endRefreshing(at: .top)
                 self?.viewModel.resetDataSource()
-                self?.viewModel.fetchMovies(pageNo: 1)
+                self?.viewModel.fetchMovies()
                 self?.view.layoutIfNeeded()
             }
         }

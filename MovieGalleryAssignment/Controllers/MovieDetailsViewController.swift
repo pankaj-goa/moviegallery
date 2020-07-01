@@ -116,7 +116,11 @@ class MovieDetailsViewController: UIViewController {
     }
     
     private func loadImageView(posterPath: String){
-        self.posterImageView.sd_setIndicatorStyle(.medium)
+        if #available(iOS 13.0, *) {
+            self.posterImageView.sd_setIndicatorStyle(.medium)
+        } else {
+            self.posterImageView.sd_setIndicatorStyle(.gray)
+        }
         self.posterImageView.sd_setShowActivityIndicatorView(true)
         self.posterImageView.sd_setImage(with: URL(string: "\(posterBaseUrl)\(posterPath)"), placeholderImage: nil, options: [], completed: nil)
     }
