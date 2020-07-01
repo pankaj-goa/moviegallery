@@ -11,9 +11,11 @@ import RxSwift
 import RxCocoa
 import RealmSwift
 
+///ViewModel class for MovieDetailsViewController
 class MoviesDetailsViewModel{
     let apiCall = ApiClass()
-    weak var vc: MovieDetailsViewController!
+    
+    let navigationTitleText = "Movie Details"
     
     private var disposeBag = DisposeBag()
     
@@ -21,13 +23,16 @@ class MoviesDetailsViewModel{
     var dataObservable: Observable<Movie?> {
         return data.asObservable()
     }
+    
     var dataSource: Movie? {
         return data.value
     }
+    
     private let trailerData = BehaviorRelay<Movie?>(value: nil)
     var trailerDataObservable: Observable<Movie?> {
         return trailerData.asObservable()
     }
+    
     var trailerDataSource: Movie? {
         return trailerData.value
     }
@@ -36,6 +41,7 @@ class MoviesDetailsViewModel{
     var showSnackBarObservable: Observable<(message: String?, dataExists: Bool)> {
         return showSnackBar.asObservable()
     }
+    
     private let isLoading = PublishSubject<Bool>()
     var isLoadingObservable: Observable<Bool> {
         return isLoading.asObservable()
@@ -49,6 +55,7 @@ class MoviesDetailsViewModel{
             return nil
         }
     }
+    
     var posterPath: String?{
         guard let movie = dataSource else { return nil }
         if let posterUrl = movie.poster_path, posterUrl != ""{
@@ -57,6 +64,7 @@ class MoviesDetailsViewModel{
             return nil
         }
     }
+    
     var overviewTxt: String?{
         guard let movie = dataSource else { return nil }
         if let overviewStr = movie.overview, overviewStr != ""{
@@ -65,6 +73,7 @@ class MoviesDetailsViewModel{
             return nil
         }
     }
+    
     var releaseDate: String?{
         guard let movie = dataSource else { return nil }
         if let releaseDate = movie.release_date, releaseDate != ""{
@@ -91,7 +100,17 @@ class MoviesDetailsViewModel{
             return nil
         }
     }
+    /**
+    Call this function to fetch movie details from server and for a particular movie id.
+    - Parameters:
+       - movieId: Pass movie id for fetching movie details in Int
     
+    ### Usage Example: ###
+    ````
+     fetchMovieDetailsById(movieId: 2131)
+     
+    ````
+    */
     func fetchMovieDetailsById(_ movieId: Int){
         let status = Reach().connectionStatus()
         switch status {
@@ -120,6 +139,17 @@ class MoviesDetailsViewModel{
         }
     }
     
+    /**
+    Call this function to fetch movie videos from server and for a particular movie id.
+    - Parameters:
+       - movieId: Pass movie id for fetching movie videos in Int
+    
+    ### Usage Example: ###
+    ````
+     fetchMovieTrailersById(movieId: 2131)
+     
+    ````
+    */
     func fetchMovieTrailersById(_ movieId: Int){
         self.isLoading.onNext(true)
         self.apiCall.fetchMovieTrailersById(movieId)

@@ -7,7 +7,7 @@
 //
 
 import Foundation
-
+///SnackAlert: Defined enum snack bar messages
 enum SnackAlert: Error {
     case pageTop
     case pageBottom

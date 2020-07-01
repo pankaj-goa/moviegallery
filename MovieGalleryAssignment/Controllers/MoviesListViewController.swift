@@ -18,7 +18,6 @@ class MoviesListViewController: UIViewController {
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var moviesTableView: UITableView!
     @IBOutlet weak var internetStatusLabel: UILabel!
-    let moviesCellIdentifier = "MoviesTableViewCell"
     
     var disposeBag = DisposeBag()
     var viewModel = MoviesListViewModel()
@@ -28,8 +27,24 @@ class MoviesListViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.configureNavigationBar(titleName: "Movie Catalog")
         
+        self.configureNavigationBar(titleName: viewModel.navigationTitleText)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+        
+        self.setupActivityLoadersInHeaderAndFooter()
+        
+        self.setupSearchBar()
+        
+        self.setupTableView()
+        
+        self.viewModel.fetchMovies()
+        
+        self.setUpObservers()
+    }
+    
+    private func setupActivityLoadersInHeaderAndFooter(){
         if #available(iOS 13.0, *) {
             self.headerIndicator = UIActivityIndicatorView(style: .medium)
             self.footerIndicator = UIActivityIndicatorView(style: .medium)
@@ -40,35 +55,56 @@ class MoviesListViewController: UIViewController {
         
         self.configActivityIndicator(spinner: footerIndicator)
         self.configActivityIndicator(spinner: headerIndicator)
-        
+    }
+    
+    private func setupSearchBar(){
         self.searchBar.delegate = self
         self.searchBar.textField?.clearButtonMode = .whileEditing
         self.searchBar.textField?.textAlignment = .center
+        
         let placeholderParagraphStyle = NSMutableParagraphStyle()
         placeholderParagraphStyle.alignment = .center
         self.searchBar.textField?.attributedPlaceholder = NSAttributedString(
-            string: "Search movies",
+            string: self.viewModel.searchBarPlaceholderText,
             attributes: [
                 NSAttributedString.Key.paragraphStyle: placeholderParagraphStyle
             ]
         )
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
-        
+    }
+    
+    private func setupTableView(){
         self.moviesTableView.tableHeaderView = nil
         self.moviesTableView.delegate = self
         self.moviesTableView.dataSource = self
         self.moviesTableView.estimatedRowHeight = 160.0
         self.moviesTableView.tableFooterView = nil
         
-        self.viewModel.fetchMovies()
-        
-        self.moviesTableView.register(UINib(nibName: moviesCellIdentifier, bundle: nil), forCellReuseIdentifier: moviesCellIdentifier)
-        
-        self.setUpObservers()
+        self.moviesTableView.register(UINib(nibName: self.viewModel.moviesCellIdentifier, bundle: nil), forCellReuseIdentifier: self.viewModel.moviesCellIdentifier)
     }
     
+    /**
+    Call this function to add subscribers in View Controller class.
+    - Parameters:
+       - titleName: Pass your title name to be displayed in navigation in String.
+    
+    ### Usage Example: ###
+    ````
+     self.setUpObservers()
+     
+     private func setUpObservers() {
+         viewModel.isLoadingObservable
+         .subscribe(onNext: { [weak self] isLoading in
+             if isLoading {
+                 self?.showProgressLoader()
+             } else {
+                 self?.hideProgressLoader()
+             }
+         })
+         .disposed(by: self.disposeBag)
+     }
+     
+    ````
+    */
     private func setUpObservers() {
         viewModel.isLoadingObservable
         .subscribe(onNext: { [weak self] isLoading in
@@ -100,7 +136,7 @@ class MoviesListViewController: UIViewController {
             if data.isOnline{
                 self?.internetStatusLabel.text = nil
             } else{
-                self?.internetStatusLabel.text = "No Internet Connection: Offline Data"
+                self?.internetStatusLabel.text = self?.viewModel.offlineDataTitleText
                 if self?.moviesTableView.topPullToRefresh == nil{ self?.setupPullToRefresh(on: (self?.moviesTableView)!) }
             }
             self?.moviesTableView.reloadData()
@@ -144,6 +180,7 @@ class MoviesListViewController: UIViewController {
             })
         }
     }
+    
     @objc private func keyboardWillHide(notification: NSNotification){
         if !self.isViewLoaded || self.view.window == nil{
             return
@@ -215,7 +252,7 @@ extension MoviesListViewController: UITableViewDelegate, UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let movie = (self.searchBar.isEmpty()) ? self.viewModel.dataSource.movies[indexPath.row] : self.viewModel.searchDataSource[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: moviesCellIdentifier) as! MoviesTableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: self.viewModel.moviesCellIdentifier) as! MoviesTableViewCell
         cell.movie = movie
         return cell
     }

@@ -9,6 +9,10 @@
 import Foundation
 import RealmSwift
 
+/**
+- Description:
+   - RealmInt: a custom type for realm optional Int
+*/
 class RealmInt: Object, Codable {
     private var numeric = RealmOptional<Int>()
 
@@ -30,7 +34,10 @@ class RealmInt: Object, Codable {
         return numeric.value ?? 0
     }
 }
-
+/**
+- Description:
+   - ListGenres: a custom type for Realm List Genres optional for array of Genres.
+*/
 class ListGenres: Object, Codable {
     private var genres = List<Genres>()
 
@@ -50,7 +57,10 @@ class ListGenres: Object, Codable {
     }
 
 }
-
+/**
+- Description:
+   - ListTrailer: a custom type for Realm List Trailer optional for array of Trailer.
+*/
 class ListTrailer: Object, Codable {
     private var trailer = List<Trailer>()
 

@@ -8,11 +8,32 @@
 
 import UIKit
 
+/// Extension for UISearchBar
 extension UISearchBar{
+    /**
+    This function will check if SearchBar contains text or not and to be called on UISearchBar.
+    - Returns:
+     - Boolean variable true if empty else false
+    ### Usage Example: ###
+    ````
+    self.searchBar.isEmpty()
+     
+    ````
+    */
     func isEmpty() -> Bool{
         return self.text == nil || self.text == ""
     }
     
+    /**
+    This property will check for searchbar textfield for iOS version 13.0 or other on UISearchBar.
+    - Returns:
+     - Optional textfield of the search bar
+    ### Usage Example: ###
+    ````
+    self.searchBar.textField
+     
+    ````
+    */
     var textField : UITextField? {
         if #available(iOS 13.0, *) {
             return self.searchTextField

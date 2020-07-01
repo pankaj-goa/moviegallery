@@ -39,10 +39,12 @@ class MovieDetailsViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.configureNavigationBar(titleName: "Movie Details")
-        self.setUpObservers()
-        self.viewModel.fetchMovieDetailsById(movieId)
         
+        self.configureNavigationBar(titleName: self.viewModel.navigationTitleText)
+        
+        self.setUpObservers()
+        
+        self.viewModel.fetchMovieDetailsById(movieId)
     }
 
     private func setUpObservers() {
@@ -150,6 +152,7 @@ class MovieDetailsViewController: UIViewController {
     @IBAction func didClickWatchTrailer(_ sender: Any) {
         self.viewModel.fetchMovieTrailersById(self.movieId)
     }
+    
     private func playMovieTrailer(){
         if let youtubeId = self.viewModel.youtubeId{
             let storyboard = UIStoryboard.init(name: "Main", bundle: nil) //initialise

@@ -14,11 +14,17 @@ import RxCocoa
 import RealmSwift
 import Connectivity
 
+///ViewModel class for MoviesListViewController
 class MoviesListViewModel {
     let apiCall = ApiClass()
     var totalPages: Int?
     var topPageNo: Int = 0
     var bottomPageNo: Int = 0
+    
+    let offlineDataTitleText = "Displaying offline data, pull to refresh"
+    let navigationTitleText = "Movie Catalog"
+    let moviesCellIdentifier = "MoviesTableViewCell"
+    let searchBarPlaceholderText = "Search movies"
     
     private var disposeBag = DisposeBag()
     private let data = BehaviorRelay<(movies: [Movie], isOnline: Bool)>(value: ([], true))
@@ -60,6 +66,17 @@ class MoviesListViewModel {
         return showSnackBar.asObservable()
     }
     
+    /**
+    Call this function to fetch list of movies from server for a page and insert or append data. ie top or bottom also sets the observable values for subscribers.
+    - Parameters:
+       - pageNo: Pass your page no for fetching movies in Int
+    
+    ### Usage Example: ###
+    ````
+     fetchMovies(pageNo: 1)
+     
+    ````
+    */
     func fetchMovies(pageNo: Int = 10) {
         if self.dataSource.movies.isEmpty {
             self.isLoading.onNext(true)
@@ -134,10 +151,12 @@ class MoviesListViewModel {
             .disposed(by: self.disposeBag)
     }
     
+    ///Call this function to remove all the records from the datasource.
     func resetDataSource(){
         self.data.accept((movies: [], isOnline: true))
     }
     
+    //Call this function to remove all the records from the realm database.
     func deleteRealmMovieData(){
         let realm = try! Realm()
         try! realm.write{
@@ -145,6 +164,11 @@ class MoviesListViewModel {
         }
     }
     
+    /**
+    Call this function to add data to the realm db.
+    - Parameters:
+       - movies: Pass list of movies to be added to the realm database.
+    */
     private func addMovieToRealm(movies: List<Movie>){
         let realm = try! Realm()
         try! realm.write{
@@ -152,6 +176,11 @@ class MoviesListViewModel {
         }
     }
     
+    /**
+    Call this function to filter the datasource.movies array and set searchArray from the search string with prefix characters in datasource.movies
+    - Parameters:
+       - search: Pass search keyword.
+    */
     func searchMoviesByQuery(_ search: String) {
         let movies = self.dataSource.movies.filter({$0.title?.prefix(search.count).lowercased() == search.lowercased()})
         self.searchData.accept(movies)
