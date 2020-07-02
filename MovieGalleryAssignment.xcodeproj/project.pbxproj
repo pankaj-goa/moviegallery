@@ -547,10 +547,10 @@
 			baseConfigurationReference = AB342909B68029372D20D499 /* Pods-MovieGalleryAssignment.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = G29JN62M8X;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = MovieGalleryAssignment/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -558,9 +558,9 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.nextcarrental.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.MovieGalleryAssignment.app;
 				PRODUCT_NAME = MovieGalleryAssignment;
-				PROVISIONING_PROFILE_SPECIFIER = NextcarRentalAppDevelopment;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -571,10 +571,10 @@
 			baseConfigurationReference = A98000365CB16B9CC36547A9 /* Pods-MovieGalleryAssignment.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = G29JN62M8X;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = MovieGalleryAssignment/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -582,9 +582,9 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.nextcarrental.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.MovieGalleryAssignment.app;
 				PRODUCT_NAME = MovieGalleryAssignment;
-				PROVISIONING_PROFILE_SPECIFIER = NextCarRentalAppDistribution;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
