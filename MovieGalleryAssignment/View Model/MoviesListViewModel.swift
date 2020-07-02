@@ -219,7 +219,7 @@ class MoviesListViewModel {
     private func addMovieResultsToRealmDB(movies: List<Movie>){
         let realm = try! Realm()
         try! realm.write{
-            realm.add(movies)
+            realm.add(movies, update: .modified)
         }
     }
     
