@@ -132,12 +132,6 @@ class MoviesListViewController: UIViewController {
 
         viewModel.dataObservable
         .subscribe(onNext: { [weak self] data in
-            if data.isOnline{
-                self?.internetStatusLabel.text = nil
-            } else{
-                self?.internetStatusLabel.text = PageError.offlineMode.msg
-                if self?.moviesTableView.topPullToRefresh == nil{ self?.setupPullToRefresh(on: (self?.moviesTableView)!) }
-            }
             self?.moviesTableView.reloadData()
         })
         .disposed(by: self.disposeBag)
@@ -164,6 +158,30 @@ class MoviesListViewController: UIViewController {
         .subscribe(onNext: { [weak self] message in
             if let txt = message, txt != ""{
                 self?.showSnackBar(timeInterval: 1, message: txt)
+            }
+        })
+        .disposed(by: self.disposeBag)
+        
+        viewModel.setPullToRefreshObservable
+        .subscribe(onNext: { [weak self] value in
+            if value{
+                if self?.moviesTableView.topPullToRefresh == nil{
+                    self?.setupPullToRefresh(on: (self?.moviesTableView)!)
+                }
+            } else{
+                if let _ = self?.moviesTableView.topPullToRefresh{
+                    self?.moviesTableView.removeAllPullToRefresh()
+                }
+            }
+        })
+        .disposed(by: self.disposeBag)
+        
+        viewModel.showTopLabelObservable
+        .subscribe(onNext: { [weak self] value in
+            if value.show{
+                self?.internetStatusLabel.text = value.msg ?? ""
+            } else{
+                self?.internetStatusLabel.text = nil
             }
         })
         .disposed(by: self.disposeBag)

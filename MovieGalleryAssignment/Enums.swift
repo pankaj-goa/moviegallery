@@ -23,15 +23,18 @@ enum APIErrors: Error {
 enum PageError: Error {
     case pageTop
     case pageBottom
-    case offlineMode
+    case offlineData
+    case offline
     var msg: String {
         switch self {
         case .pageTop:
-            return "Sorry! No earlier records are available."
+            return "Sorry! No earlier records are available. Pull to reload page"
         case .pageBottom:
             return "Sorry! No further records are available."
-        case .offlineMode:
-            return "Displaying Offline Data, Pull To Refresh"
+        case .offlineData:
+            return "Displaying Offline Data, Pull To Reload"
+        case .offline:
+            return "No Internet Connection, Pull To Reload"
         }
     }
 }

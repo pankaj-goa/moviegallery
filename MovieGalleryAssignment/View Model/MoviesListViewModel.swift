@@ -65,6 +65,14 @@ class MoviesListViewModel {
     var showSnackBarObservable: Observable<String?> {
         return showSnackBar.asObservable()
     }
+    private let setPullToRefresh = PublishSubject<Bool>()
+    var setPullToRefreshObservable: Observable<Bool> {
+        return setPullToRefresh.asObservable()
+    }
+    private let showTopLabel = PublishSubject<(show: Bool, msg: String?)>()
+    var showTopLabelObservable: Observable<(show: Bool, msg: String?)>{
+        return showTopLabel.asObservable()
+    }
     
     /**
     Call this function to fetch list of movies from server for a page and insert or append data. ie top or bottom also sets the observable values for subscribers and also checks for offline data incase of not connection.
@@ -104,8 +112,10 @@ class MoviesListViewModel {
                 self.data.accept((movies: movies, isOnline: true))
                 self.showBottomLoader.onNext(false)
             }
+            self.showTopLabel.onNext((show: false, msg: nil))
             self.interfaceAPIMovies = interface
             self.addMovieResultsToRealmDB(movies: interface.results)
+            self.addPullToRefreshIfReqd()
             }, onError: { [weak self] error in
                 let error = (error as? APIErrors)?.errorStr
                 self?.showSnackBar.onNext(error)
@@ -114,6 +124,15 @@ class MoviesListViewModel {
                 self?.showBottomLoader.onNext(false)
             })
             .disposed(by: self.disposeBag)
+    }
+    
+    private func addPullToRefreshIfReqd(){
+        if self.dataSource.movies.isEmpty ||  self.topPageNo == 1{
+            self.setPullToRefresh.onNext(true)
+        } else {
+            self.setPullToRefresh.onNext(false)
+        }
+        
     }
     
     ///Call this function to show the top, bottom or svprogress loader or return offline data incase of no internet and has offline data in realm or continue with server request incase of no offline data.
@@ -160,10 +179,18 @@ class MoviesListViewModel {
     
     ///Check internet connectivity, returns movies from realm db if exists and no internet, else returns nil
     private func checkIfOffline() -> [Movie]?{
-        let movies = Array(try!Realm().objects(Movie.self))
-        if movies.count > 0, !Reach().isConnectedToInternet(){
-            return movies
-        } else {
+        switch Reach().isConnectedToInternet() {
+        case false:
+            self.addPullToRefreshIfReqd()
+            let movies = Array(try!Realm().objects(Movie.self))
+            if movies.count > 0{
+                self.showTopLabel.onNext((show: true, msg: PageError.offlineData.msg))
+                return movies
+            }else{
+                self.showTopLabel.onNext((show: true, msg: PageError.offline.msg))
+                return nil
+            }
+        default:
             return nil
         }
     }
