@@ -12,6 +12,7 @@ import TTGSnackbar
 import RxSwift
 import RxCocoa
 
+///Controller class for movie listing page
 class MoviesListViewController: UIViewController {
     
     @IBOutlet weak var searchBarBottom: NSLayoutConstraint!
@@ -56,7 +57,7 @@ class MoviesListViewController: UIViewController {
         self.configActivityIndicator(spinner: footerIndicator)
         self.configActivityIndicator(spinner: headerIndicator)
     }
-    
+    ///Sets the properties for UISearchBar
     private func setupSearchBar(){
         self.searchBar.delegate = self
         self.searchBar.textField?.clearButtonMode = .whileEditing
@@ -190,7 +191,7 @@ class MoviesListViewController: UIViewController {
             })
         }
     }
-    
+    ///call this function to show/hide loader at the top for pagination
     func showIndicatorAtTop(_ value: Bool){
         if value{
             self.headerIndicator.startAnimating()
@@ -200,7 +201,7 @@ class MoviesListViewController: UIViewController {
             self.moviesTableView.tableHeaderView = nil
         }
     }
-    
+    ///call this function to show/hide loader at the bottom for pagination
     func showIndicatorAtBottom(_ value: Bool){
         if value{
             self.footerIndicator.startAnimating()
@@ -210,14 +211,14 @@ class MoviesListViewController: UIViewController {
             self.moviesTableView.tableFooterView = nil
         }
     }
-    
+    ///Sets the properties for UIActivityIndicatorView
     func configActivityIndicator(spinner: UIActivityIndicatorView){
         let indicator = spinner
         spinner.color = UIColor.darkGray
         indicator.hidesWhenStopped = true
         indicator.frame = CGRect(x: 0, y: 0, width: moviesTableView.bounds.width, height: CGFloat(40))
     }
-    
+    ///Sets pull to refresh at top for the movies list.
     func setupPullToRefresh(on scrollView: UIScrollView) {
         scrollView.addPullToRefresh(PullToRefresh()) {
             DispatchQueue.main.async() { [weak self, weak scrollView] in

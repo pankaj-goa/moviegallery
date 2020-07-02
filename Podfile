@@ -14,5 +14,5 @@ pod "youtube-ios-player-helper"
 pod 'RxSwift'
 pod 'RxCocoa'
 pod 'RealmSwift'
-pod "Connectivity"
+#pod "Connectivity"
 end

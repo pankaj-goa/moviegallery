@@ -12,14 +12,13 @@ import UIKit
 import RxSwift
 import RxCocoa
 import RealmSwift
-import Connectivity
 
+///View model class for MoviesListViewController UIViewController
 class MoviesListViewModel {
     let apiCall = ApiClass()
     var topPageNo: Int = 0
     var bottomPageNo: Int = 0
     
-//    let offlineDataTitleText = "Displaying Offline Data, Pull To Refresh"
     let navigationTitleText = "Movie Catalog"
     let moviesCellIdentifier = "MoviesTableViewCell"
     let searchBarPlaceholderText = "Search movies"
@@ -189,11 +188,6 @@ class MoviesListViewModel {
     Call this function to add data to the realm db.
     - Parameters:
        - movies: Pass list of movies to be added to the realm database.
-     ### Usage Example: ###
-     ````
-      addMovieResultsToRealmDB(movies: List<Movie>)
-      
-     ````
     */
     private func addMovieResultsToRealmDB(movies: List<Movie>){
         let realm = try! Realm()

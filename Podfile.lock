@@ -1,6 +1,5 @@
 PODS:
   - Alamofire (5.0.4)
-  - Connectivity (4.0.0)
   - PullToRefresher (3.3)
   - Realm (5.1.0):
     - Realm/Headers (= 5.1.0)
@@ -22,7 +21,6 @@ PODS:
 
 DEPENDENCIES:
   - Alamofire
-  - Connectivity
   - PullToRefresher
   - RealmSwift
   - RxCocoa
@@ -35,7 +33,6 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - Alamofire
-    - Connectivity
     - PullToRefresher
     - Realm
     - RealmSwift
@@ -49,7 +46,6 @@ SPEC REPOS:
 
 SPEC CHECKSUMS:
   Alamofire: 0fe5fd24b4298dc377a6550da7d5f1b30e286fcb
-  Connectivity: c40b8de0a331b8081f790c8a3e6ada9f1d418065
   PullToRefresher: 6fc2ab6494caf949bcf6f0223ffd23f9d21a06f6
   Realm: bdea546851e37b4cf0a2400cef115c7c26fda488
   RealmSwift: 70945aa168db93b215c460e9c8ef680261aa28af
@@ -61,6 +57,6 @@ SPEC CHECKSUMS:
   TTGSnackbar: 97c033600de8a9c8f4a093f25a08543a03946bcc
   youtube-ios-player-helper: 40b96e52c22445f0fdc43731cefa32c67075ff81
 
-PODFILE CHECKSUM: e93c07e819d3b49e8ea839504ab78a9543c8211b
+PODFILE CHECKSUM: bd6556bb115edc2cf7907132003fe5f204a65545
 
 COCOAPODS: 1.9.1

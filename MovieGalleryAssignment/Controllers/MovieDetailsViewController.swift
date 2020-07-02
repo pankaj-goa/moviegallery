@@ -10,6 +10,7 @@ import UIKit
 import RxCocoa
 import RxSwift
 
+///Controller class for movie details page
 class MovieDetailsViewController: UIViewController {
 
     @IBOutlet weak var containerStackView: UIStackView!
@@ -117,6 +118,7 @@ class MovieDetailsViewController: UIViewController {
         }
     }
     
+    ///Call this function to load the image in the imageView
     private func loadImageView(posterPath: String){
         if #available(iOS 13.0, *) {
             self.posterImageView.sd_setIndicatorStyle(.medium)
@@ -126,7 +128,7 @@ class MovieDetailsViewController: UIViewController {
         self.posterImageView.sd_setShowActivityIndicatorView(true)
         self.posterImageView.sd_setImage(with: URL(string: "\(posterBaseUrl)\(posterPath)"), placeholderImage: nil, options: [], completed: nil)
     }
-    
+    ///Call this function to update constraints and add device orientation observer
     private func setupConstraints(){
         self.buttonTopConstraint.isActive = false
         buttonTitleVerticalSpacingConstraint = self.watchTrailerButton.topAnchor.constraint(equalTo: self.movieTitleLabel.bottomAnchor, constant: 10)
@@ -135,7 +137,7 @@ class MovieDetailsViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(updateOrientation), name: UIDevice.orientationDidChangeNotification, object: nil)
         self.updateOrientation()
     }
-    
+    ///Call this function check device orientation and to set the constraints for that orientation.
     @objc func updateOrientation() {
         switch UIDevice.current.orientation {
         case .landscapeLeft, .landscapeRight:
@@ -152,7 +154,7 @@ class MovieDetailsViewController: UIViewController {
     @IBAction func didClickWatchTrailer(_ sender: Any) {
         self.viewModel.fetchMovieTrailersById(self.movieId)
     }
-    
+
     private func playMovieTrailer(){
         if let youtubeId = self.viewModel.youtubeId{
             let storyboard = UIStoryboard.init(name: "Main", bundle: nil) //initialise
