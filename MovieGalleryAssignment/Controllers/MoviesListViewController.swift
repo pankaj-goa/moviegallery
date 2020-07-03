@@ -26,6 +26,8 @@ class MoviesListViewController: UIViewController {
     var footerIndicator: UIActivityIndicatorView!
     var headerIndicator: UIActivityIndicatorView!
     
+    let refresher = PullToRefresh(position: .top)
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -36,11 +38,14 @@ class MoviesListViewController: UIViewController {
         
         self.setupActivityLoadersInHeaderAndFooter()
         
+        self.setupPullToRefresh()
+        
         self.setupSearchBar()
         
         self.setupTableView()
         
         self.setUpObservers()
+        
         
         self.viewModel.fetchMovies()
     }
@@ -132,6 +137,8 @@ class MoviesListViewController: UIViewController {
 
         viewModel.dataObservable
         .subscribe(onNext: { [weak self] data in
+            if data.isOnline{ self?.disablePullToRefresh() }
+            else { self?.enablePullToRefresh() }
             self?.moviesTableView.reloadData()
         })
         .disposed(by: self.disposeBag)
@@ -144,13 +151,13 @@ class MoviesListViewController: UIViewController {
         
         viewModel.didFinishTopPaginationObservable
         .subscribe(onNext: { [weak self] _ in
-            self?.setupPullToRefresh(on: (self?.moviesTableView)!)
+            self?.enablePullToRefresh()
         })
         .disposed(by: self.disposeBag)
         
         viewModel.didFinishBottomPaginationObservable
         .subscribe(onNext: { [weak self] _ in
-            if let _ = self?.moviesTableView.topPullToRefresh, (self?.viewModel.dataSource.isOnline)!{ self?.moviesTableView.removeAllPullToRefresh() }
+            self?.disablePullToRefresh()
         })
         .disposed(by: self.disposeBag)
         
@@ -158,20 +165,6 @@ class MoviesListViewController: UIViewController {
         .subscribe(onNext: { [weak self] message in
             if let txt = message, txt != ""{
                 self?.showSnackBar(timeInterval: 1, message: txt)
-            }
-        })
-        .disposed(by: self.disposeBag)
-        
-        viewModel.setPullToRefreshObservable
-        .subscribe(onNext: { [weak self] value in
-            if value{
-                if self?.moviesTableView.topPullToRefresh == nil{
-                    self?.setupPullToRefresh(on: (self?.moviesTableView)!)
-                }
-            } else{
-                if let _ = self?.moviesTableView.topPullToRefresh{
-                    self?.moviesTableView.removeAllPullToRefresh()
-                }
             }
         })
         .disposed(by: self.disposeBag)
@@ -185,6 +178,28 @@ class MoviesListViewController: UIViewController {
             }
         })
         .disposed(by: self.disposeBag)
+    }
+    
+    func enablePullToRefresh(){
+        self.moviesTableView.endAllRefreshing()
+        self.refresher.setEnable(isEnabled: true)
+    }
+    
+    func disablePullToRefresh(){
+        self.moviesTableView.endAllRefreshing()
+        self.refresher.setEnable(isEnabled: false)
+    }
+    
+    ///Sets pull to refresh at top for the movies list.
+    func setupPullToRefresh() {
+        self.moviesTableView.addPullToRefresh(refresher) {
+            DispatchQueue.main.async() { [weak self] in
+                self?.moviesTableView.endRefreshing(at: .top)
+                self?.viewModel.resetDataSource()
+                self?.viewModel.fetchMovies()
+            }
+        }
+        self.refresher.setEnable(isEnabled: false)
     }
     
     @objc private func keyboardWillShow(notification: NSNotification){
@@ -236,22 +251,9 @@ class MoviesListViewController: UIViewController {
         indicator.hidesWhenStopped = true
         indicator.frame = CGRect(x: 0, y: 0, width: moviesTableView.bounds.width, height: CGFloat(40))
     }
-    ///Sets pull to refresh at top for the movies list.
-    func setupPullToRefresh(on scrollView: UIScrollView) {
-        scrollView.addPullToRefresh(PullToRefresh()) {
-            DispatchQueue.main.async() { [weak self, weak scrollView] in
-                scrollView?.endRefreshing(at: .top)
-                self?.viewModel.resetDataSource()
-                self?.viewModel.fetchMovies()
-            }
-        }
-        scrollView.addPullToRefresh(PullToRefresh(position: .bottom)) {
-            DispatchQueue.main.async() { [weak self, weak scrollView] in
-            scrollView?.endRefreshing(at: .bottom)
-            self?.view.layoutIfNeeded()
-        }}
-    }
+    
     deinit {
+        self.moviesTableView.removeAllPullToRefresh()
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
@@ -280,7 +282,6 @@ extension MoviesListViewController: UITableViewDelegate, UITableViewDataSource{
             }
             let lastIndex = self.viewModel.dataSource.movies.count - 1
             if indexPath.row == lastIndex{
-                if let _ = tableView.topPullToRefresh{ tableView.removeAllPullToRefresh()}
                 self.showIndicatorAtBottom(true)
                 self.viewModel.fetchMovies(pageNo: self.viewModel.bottomPageNo + 1)
             }

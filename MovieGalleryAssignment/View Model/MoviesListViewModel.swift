@@ -65,10 +65,6 @@ class MoviesListViewModel {
     var showSnackBarObservable: Observable<String?> {
         return showSnackBar.asObservable()
     }
-    private let setPullToRefresh = PublishSubject<Bool>()
-    var setPullToRefreshObservable: Observable<Bool> {
-        return setPullToRefresh.asObservable()
-    }
     private let showTopLabel = PublishSubject<(show: Bool, msg: String?)>()
     var showTopLabelObservable: Observable<(show: Bool, msg: String?)>{
         return showTopLabel.asObservable()
@@ -115,7 +111,6 @@ class MoviesListViewModel {
             self.showTopLabel.onNext((show: false, msg: nil))
             self.interfaceAPIMovies = interface
             self.addMovieResultsToRealmDB(movies: interface.results)
-            self.addPullToRefreshIfReqd()
             }, onError: { [weak self] error in
                 let error = (error as? APIErrors)?.errorStr
                 self?.showSnackBar.onNext(error)
@@ -124,15 +119,6 @@ class MoviesListViewModel {
                 self?.showBottomLoader.onNext(false)
             })
             .disposed(by: self.disposeBag)
-    }
-    
-    private func addPullToRefreshIfReqd(){
-        if self.dataSource.movies.isEmpty ||  self.topPageNo == 1{
-            self.setPullToRefresh.onNext(true)
-        } else {
-            self.setPullToRefresh.onNext(false)
-        }
-        
     }
     
     ///Call this function to show the top, bottom or svprogress loader or return offline data incase of no internet and has offline data in realm or continue with server request incase of no offline data.
@@ -181,7 +167,6 @@ class MoviesListViewModel {
     private func checkIfOffline() -> [Movie]?{
         switch Reach().isConnectedToInternet() {
         case false:
-            self.addPullToRefreshIfReqd()
             let movies = Array(try!Realm().objects(Movie.self))
             if movies.count > 0{
                 self.showTopLabel.onNext((show: true, msg: PageError.offlineData.msg))
