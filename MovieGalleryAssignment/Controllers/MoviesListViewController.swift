@@ -46,7 +46,6 @@ class MoviesListViewController: UIViewController {
         
         self.setUpObservers()
         
-        
         self.viewModel.fetchMovies()
     }
     
@@ -137,7 +136,7 @@ class MoviesListViewController: UIViewController {
 
         viewModel.dataObservable
         .subscribe(onNext: { [weak self] data in
-            if data.isOnline{ self?.disablePullToRefresh() }
+            if data.isOnline, data.movies.count > 0{ self?.disablePullToRefresh() }
             else { self?.enablePullToRefresh() }
             self?.moviesTableView.reloadData()
         })
@@ -172,6 +171,7 @@ class MoviesListViewController: UIViewController {
         viewModel.showTopLabelObservable
         .subscribe(onNext: { [weak self] value in
             if value.show{
+                self?.enablePullToRefresh()
                 self?.internetStatusLabel.text = value.msg ?? ""
             } else{
                 self?.internetStatusLabel.text = nil
